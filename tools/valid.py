@@ -230,8 +230,8 @@ def main():
     sv_all_scores = [all_reg_scores]
     sv_all_name = [cfg.NAME]
 
-    if cfg.TEST.LOG_PROGRESS:
-        pbar.close()
+    # if cfg.TEST.LOG_PROGRESS:
+    #     pbar.close()
 
     for i in range(len(sv_all_preds)):
         print('Testing '+sv_all_name[i])
