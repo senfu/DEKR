@@ -78,7 +78,7 @@ def do_train(cfg, model, data_loader, loss_factory, optimizer, epoch,
                       heatmaps_loss=_get_loss_info(
                           heatmap_loss_meter, 'heatmaps'),
                       offset_loss=_get_loss_info(offset_loss_meter, 'offset'),
-                      oks_loss=_get_loss_info(oks_loss_meter, 'oks_loss', keep_digit=True)
+                      oks_loss=_get_loss_info(oks_loss_meter, 'oks_loss')
                   )
             logger.info(msg)
 
