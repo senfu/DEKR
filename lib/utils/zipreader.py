@@ -23,8 +23,8 @@ _xml_zfile = []
 
 
 def imread(filename, flags=cv2.IMREAD_COLOR):
-    img = cv2.imread(filename.replace(".zip@", ""), flags)
-    print(type(img))
+    filename = filename.replace(".zip@", "/")
+    img = cv2.imread(filename, flags)
     return img
 
 
