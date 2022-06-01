@@ -84,8 +84,7 @@ def _print_name_value(logger, name_value, full_arch_name):
     )
 
 
-def valid_per_image(image):
-    global model
+def valid_per_image(image, model):
     transforms = torchvision.transforms.Compose([
             torchvision.transforms.ToTensor(),
             torchvision.transforms.Normalize(
