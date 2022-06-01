@@ -132,7 +132,7 @@ def rescore_valid(cfg, temp, ori_scores):
     temp = np.array(temp)
 
     feature = get_feature(temp, cfg.DATASET.DATASET)
-    feature = feature.cuda()
+    feature = feature.cpu()
 
     PredictOKSmodel = eval('models.'+'predictOKS'+'.get_pose_net')(
         cfg, feature.shape[1], is_train=False
@@ -143,7 +143,7 @@ def rescore_valid(cfg, temp, ori_scores):
         need_init_state_dict[name] = m
     PredictOKSmodel.load_state_dict(need_init_state_dict, strict=False)
     PredictOKSmodel = torch.nn.DataParallel(
-        PredictOKSmodel, device_ids=cfg.GPUS).cuda()
+        PredictOKSmodel, device_ids=cfg.GPUS).cpu()
     PredictOKSmodel.eval()
 
     scores = PredictOKSmodel(feature)

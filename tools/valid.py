@@ -103,7 +103,7 @@ def valid_per_image(image):
             )
 
             image_resized = transforms(image_resized)
-            image_resized = image_resized.unsqueeze(0).cuda()
+            image_resized = image_resized.unsqueeze(0).cpu()
 
             heatmap, posemap = get_multi_stage_outputs(
                 cfg, model, image_resized, cfg.TEST.FLIP_TEST
@@ -158,7 +158,8 @@ def main():
         logger.info('=> loading model from {}'.format(model_state_file))
         model.load_state_dict(torch.load(model_state_file))
 
-    model = torch.nn.DataParallel(model, device_ids=cfg.GPUS).cuda()
+    # model = torch.nn.DataParallel(model, device_ids=cfg.GPUS).cuda()
+    model.cpu()
     model.eval()
 
     data_loader, test_dataset = make_test_dataloader(cfg)
