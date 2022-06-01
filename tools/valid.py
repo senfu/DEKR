@@ -85,7 +85,14 @@ def _print_name_value(logger, name_value, full_arch_name):
 
 
 def valid_per_image(image):
-    global model, transforms
+    global model
+    transforms = torchvision.transforms.Compose([
+            torchvision.transforms.ToTensor(),
+            torchvision.transforms.Normalize(
+                mean=[0.485, 0.456, 0.406],
+                std=[0.229, 0.224, 0.225]
+            )
+        ])
 
     # size at scale 1.0
     base_size, center, scale = get_multi_scale_size(
