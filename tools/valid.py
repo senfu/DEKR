@@ -129,6 +129,10 @@ def valid_per_image(image):
                 scores = rescore_valid(cfg, final_poses, scores)
             return final_poses, scores
 
+model = None
+transforms = None
+pbar = None
+
 def main():
     global model, transforms, pbar
     args = parse_args()
