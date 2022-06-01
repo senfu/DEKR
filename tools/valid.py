@@ -172,7 +172,7 @@ def main():
         ])
 
 
-    all_reg_preds, all_reg_scores = process_map(valid_per_image, data_loader, max_workers=8, chunksize=4)
+    all_reg_preds, all_reg_scores = process_map(valid_per_image, test_dataset, max_workers=8, chunksize=2)
 
     # all_reg_preds = []
     # all_reg_scores = []
