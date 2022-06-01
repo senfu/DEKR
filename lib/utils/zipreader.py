@@ -40,21 +40,7 @@ def imread(filename, flags=cv2.IMREAD_COLOR):
         path_img = 'images/' + path[pos_at + 1:]
     
     print(path_img)
-    if not os.path.isfile(path_zip):
-        print("zip file '%s' is not found"%(path_zip))
-        assert 0
-    for i in range(len(_im_zfile)):
-        if _im_zfile[i]['path'] == path_zip:
-            data = _im_zfile[i]['zipfile'].read(path_img)
-            return cv2.imdecode(np.frombuffer(data, np.uint8), flags)
-    _im_zfile.append({
-        'path': path_zip,
-        'zipfile': zipfile.ZipFile(path_zip, 'r')
-    })
-
-    data = _im_zfile[-1]['zipfile'].read(path_img)
-
-    return cv2.imdecode(np.frombuffer(data, np.uint8), flags)
+    print(filename)
 
 
 def xmlread(filename):
