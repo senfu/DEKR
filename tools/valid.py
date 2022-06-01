@@ -172,6 +172,7 @@ def main():
         ])
 
     model.share_memory()
+    torch.multiprocessing.set_start_method('spawn')
     pool = torch.multiprocessing.Pool(4)
     all_reg_preds, all_reg_scores = tqdm(pool.imap(valid_per_image, test_dataset), total=len(test_dataset))
     # all_reg_preds, all_reg_scores = process_map(valid_per_image, test_dataset, max_workers=8, chunksize=2)
