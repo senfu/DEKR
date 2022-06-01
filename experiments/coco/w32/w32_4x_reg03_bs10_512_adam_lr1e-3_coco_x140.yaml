@@ -23,8 +23,8 @@ DATASET:
   MAX_TRANSLATE: 40
   MIN_SCALE: 0.75
   NUM_JOINTS: 17
-  # ROOT: '/home/student/data/coco'
-  ROOT: '/data/dataset/pose_dataset/data/coco'
+  ROOT: '/home/student/data/coco'
+  # ROOT: '/data/dataset/pose_dataset/data/coco'
   TEST: val2017
   TRAIN: train2017
   OFFSET_RADIUS: 4
@@ -101,7 +101,7 @@ TRAIN:
   END_EPOCH: 140
   GAMMA1: 0.99
   GAMMA2: 0.0
-  IMAGES_PER_GPU: 2
+  IMAGES_PER_GPU: 10
   LR: 0.001
   LR_FACTOR: 0.1
   LR_STEP: [90, 120]
