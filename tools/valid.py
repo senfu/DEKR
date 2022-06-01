@@ -180,7 +180,7 @@ def main():
 
     model.share_memory()
     torch.multiprocessing.set_start_method('spawn')
-    pool = torch.multiprocessing.Pool(4)
+    pool = torch.multiprocessing.Pool(16)
     pbar = tqdm(pool.imap(valid_per_image, zip(test_dataset, [model]*len(test_dataset))), total=len(test_dataset))
     all_reg_preds, all_reg_scores = tuple(pbar)
     pbar.close()
