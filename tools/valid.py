@@ -25,7 +25,6 @@ import torch.utils.data.distributed
 import torchvision.transforms
 import torch.multiprocessing
 from tqdm import tqdm
-from tqdm.contrib.concurrent import process_map
 
 import _init_paths
 import models
@@ -171,60 +170,62 @@ def main():
             )
         ])
 
-
+    model.share_memory()
+    pool = torch.multiprocessing.Pool(8)
+    all_reg_preds, all_reg_scores = pool.map(valid_per_image, test_dataset)
     # all_reg_preds, all_reg_scores = process_map(valid_per_image, test_dataset, max_workers=8, chunksize=2)
 
-    all_reg_preds = []
-    all_reg_scores = []
-    pbar = tqdm(total=len(test_dataset)) if cfg.TEST.LOG_PROGRESS else None
-    for i, images in enumerate(data_loader):
-        assert 1 == images.size(0), 'Test batch size should be 1'
-        image = images[0].cpu().numpy()
+    # all_reg_preds = []
+    # all_reg_scores = []
+    # pbar = tqdm(total=len(test_dataset)) if cfg.TEST.LOG_PROGRESS else None
+    # for i, images in enumerate(data_loader):
+    #     assert 1 == images.size(0), 'Test batch size should be 1'
+    #     image = images[0].cpu().numpy()
         
-        # size at scale 1.0
-        base_size, center, scale = get_multi_scale_size(
-            image, cfg.DATASET.INPUT_SIZE, 1.0, 1.0
-        )
+    #     # size at scale 1.0
+    #     base_size, center, scale = get_multi_scale_size(
+    #         image, cfg.DATASET.INPUT_SIZE, 1.0, 1.0
+    #     )
 
-        with torch.no_grad():
-            heatmap_sum = 0
-            poses = []
+    #     with torch.no_grad():
+    #         heatmap_sum = 0
+    #         poses = []
 
-            for scale in sorted(cfg.TEST.SCALE_FACTOR, reverse=True):
-                image_resized, center, scale_resized = resize_align_multi_scale(
-                    image, cfg.DATASET.INPUT_SIZE, scale, 1.0
-                )
+    #         for scale in sorted(cfg.TEST.SCALE_FACTOR, reverse=True):
+    #             image_resized, center, scale_resized = resize_align_multi_scale(
+    #                 image, cfg.DATASET.INPUT_SIZE, scale, 1.0
+    #             )
 
-                image_resized = transforms(image_resized)
-                image_resized = image_resized.unsqueeze(0).cuda()
+    #             image_resized = transforms(image_resized)
+    #             image_resized = image_resized.unsqueeze(0).cuda()
 
-                heatmap, posemap = get_multi_stage_outputs(
-                    cfg, model, image_resized, cfg.TEST.FLIP_TEST
-                )
-                heatmap_sum, poses = aggregate_results(
-                    cfg, heatmap_sum, poses, heatmap, posemap, scale
-                )
+    #             heatmap, posemap = get_multi_stage_outputs(
+    #                 cfg, model, image_resized, cfg.TEST.FLIP_TEST
+    #             )
+    #             heatmap_sum, poses = aggregate_results(
+    #                 cfg, heatmap_sum, poses, heatmap, posemap, scale
+    #             )
             
-            heatmap_avg = heatmap_sum/len(cfg.TEST.SCALE_FACTOR)
-            poses, scores = pose_nms(cfg, heatmap_avg, poses)
+    #         heatmap_avg = heatmap_sum/len(cfg.TEST.SCALE_FACTOR)
+    #         poses, scores = pose_nms(cfg, heatmap_avg, poses)
 
-            if len(scores) == 0:
-                all_reg_preds.append([])
-                all_reg_scores.append([])
-            else:
-                if cfg.TEST.MATCH_HMP:
-                    poses = match_pose_to_heatmap(cfg, poses, heatmap_avg)
+    #         if len(scores) == 0:
+    #             all_reg_preds.append([])
+    #             all_reg_scores.append([])
+    #         else:
+    #             if cfg.TEST.MATCH_HMP:
+    #                 poses = match_pose_to_heatmap(cfg, poses, heatmap_avg)
 
-                final_poses = get_final_preds(
-                    poses, center, scale_resized, base_size
-                )
-                if cfg.RESCORE.VALID:
-                    scores = rescore_valid(cfg, final_poses, scores)
-                all_reg_preds.append(final_poses)
-                all_reg_scores.append(scores)
+    #             final_poses = get_final_preds(
+    #                 poses, center, scale_resized, base_size
+    #             )
+    #             if cfg.RESCORE.VALID:
+    #                 scores = rescore_valid(cfg, final_poses, scores)
+    #             all_reg_preds.append(final_poses)
+    #             all_reg_scores.append(scores)
 
-        if cfg.TEST.LOG_PROGRESS:
-            pbar.update()
+    #     if cfg.TEST.LOG_PROGRESS:
+    #         pbar.update()
 
     sv_all_preds = [all_reg_preds]
     sv_all_scores = [all_reg_scores]
