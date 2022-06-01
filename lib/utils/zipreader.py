@@ -38,6 +38,8 @@ def imread(filename, flags=cv2.IMREAD_COLOR):
         path_img = 'test2017/' + path[pos_at + 1:]
     else:
         path_img = 'images/' + path[pos_at + 1:]
+    
+    print(path_img)
     if not os.path.isfile(path_zip):
         print("zip file '%s' is not found"%(path_zip))
         assert 0
