@@ -85,7 +85,51 @@ def _print_name_value(logger, name_value, full_arch_name):
     )
 
 
+def valid_per_image(images):
+    global model
+    image = images[0].cpu().numpy()
+    
+    # size at scale 1.0
+    base_size, center, scale = get_multi_scale_size(
+        image, cfg.DATASET.INPUT_SIZE, 1.0, 1.0
+    )
+
+    with torch.no_grad():
+        heatmap_sum = 0
+        poses = []
+
+        for scale in sorted(cfg.TEST.SCALE_FACTOR, reverse=True):
+            image_resized, center, scale_resized = resize_align_multi_scale(
+                image, cfg.DATASET.INPUT_SIZE, scale, 1.0
+            )
+
+            image_resized = transforms(image_resized)
+            image_resized = image_resized.unsqueeze(0).cuda()
+
+            heatmap, posemap = get_multi_stage_outputs(
+                cfg, model, image_resized, cfg.TEST.FLIP_TEST
+            )
+            heatmap_sum, poses = aggregate_results(
+                cfg, heatmap_sum, poses, heatmap, posemap, scale
+            )
+        
+        heatmap_avg = heatmap_sum/len(cfg.TEST.SCALE_FACTOR)
+        poses, scores = pose_nms(cfg, heatmap_avg, poses)
+        if len(scores) == 0:
+            return [], []
+        else:
+            if cfg.TEST.MATCH_HMP:
+                poses = match_pose_to_heatmap(cfg, poses, heatmap_avg)
+
+            final_poses = get_final_preds(
+                poses, center, scale_resized, base_size
+            )
+            if cfg.RESCORE.VALID:
+                scores = rescore_valid(cfg, final_poses, scores)
+            return final_poses, scores
+
 def main():
+    global model
     args = parse_args()
     update_config(cfg, args)
 
@@ -126,49 +170,8 @@ def main():
                 std=[0.229, 0.224, 0.225]
             )
         ])
-    
-    def valid_per_image(images):
-        image = images[0].cpu().numpy()
-        
-        # size at scale 1.0
-        base_size, center, scale = get_multi_scale_size(
-            image, cfg.DATASET.INPUT_SIZE, 1.0, 1.0
-        )
 
-        with torch.no_grad():
-            heatmap_sum = 0
-            poses = []
 
-            for scale in sorted(cfg.TEST.SCALE_FACTOR, reverse=True):
-                image_resized, center, scale_resized = resize_align_multi_scale(
-                    image, cfg.DATASET.INPUT_SIZE, scale, 1.0
-                )
-
-                image_resized = transforms(image_resized)
-                image_resized = image_resized.unsqueeze(0).cuda()
-
-                heatmap, posemap = get_multi_stage_outputs(
-                    cfg, model, image_resized, cfg.TEST.FLIP_TEST
-                )
-                heatmap_sum, poses = aggregate_results(
-                    cfg, heatmap_sum, poses, heatmap, posemap, scale
-                )
-            
-            heatmap_avg = heatmap_sum/len(cfg.TEST.SCALE_FACTOR)
-            poses, scores = pose_nms(cfg, heatmap_avg, poses)
-            if len(scores) == 0:
-                return [], []
-            else:
-                if cfg.TEST.MATCH_HMP:
-                    poses = match_pose_to_heatmap(cfg, poses, heatmap_avg)
-
-                final_poses = get_final_preds(
-                    poses, center, scale_resized, base_size
-                )
-                if cfg.RESCORE.VALID:
-                    scores = rescore_valid(cfg, final_poses, scores)
-                return final_poses, scores
-    
     all_reg_preds, all_reg_scores = process_map(valid_per_image, data_loader, max_workers=8)
 
     # all_reg_preds = []
