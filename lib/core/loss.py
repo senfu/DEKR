@@ -55,9 +55,10 @@ class OKSLoss(nn.Module):
     def forward(self, pred, gt, weights):
         assert pred.size() == gt.size()
         num_pos = max(torch.nonzero(weights < 0).size()[0], 1)
-        loss = ((pred - gt)**2) * weights
-        loss = torch.exp(loss.sum(1))
-        loss = loss.sum() / num_pos / (pred.shape[1] // 2)
+        oks = ((pred - gt)**2) * weights
+        oks = torch.exp(oks.sum(1))
+        oks = oks.sum() / num_pos / (pred.shape[1] // 2)
+        loss = 1.0 - oks
         return loss
 
 class MultiLossFactory(nn.Module):
