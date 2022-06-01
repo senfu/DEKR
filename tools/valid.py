@@ -159,7 +159,7 @@ def main():
         model.load_state_dict(torch.load(model_state_file))
 
     # model = torch.nn.DataParallel(model, device_ids=cfg.GPUS).cuda()
-    model.cpu()
+    model.cuda()
     model.eval()
 
     data_loader, test_dataset = make_test_dataloader(cfg)
