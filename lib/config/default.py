@@ -29,7 +29,7 @@ _C.PIN_MEMORY = True
 _C.RANK = 0
 _C.VERBOSE = True
 _C.DIST_BACKEND = 'nccl'
-_C.MULTIPROCESSING_DISTRIBUTED = False
+_C.MULTIPROCESSING_DISTRIBUTED = True
 
 # Cudnn related params
 _C.CUDNN = CN()
