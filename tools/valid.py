@@ -86,7 +86,7 @@ def _print_name_value(logger, name_value, full_arch_name):
 
 
 def valid_per_image(images):
-    global model
+    global model, transforms
     image = images[0].cpu().numpy()
     
     # size at scale 1.0
@@ -129,7 +129,7 @@ def valid_per_image(images):
             return final_poses, scores
 
 def main():
-    global model
+    global model, transforms
     args = parse_args()
     update_config(cfg, args)
 
@@ -172,7 +172,7 @@ def main():
         ])
 
 
-    all_reg_preds, all_reg_scores = process_map(valid_per_image, data_loader, max_workers=8)
+    all_reg_preds, all_reg_scores = process_map(valid_per_image, data_loader, max_workers=8, chunksize=4)
 
     # all_reg_preds = []
     # all_reg_scores = []
