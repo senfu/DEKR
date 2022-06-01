@@ -152,7 +152,6 @@ def main_worker(
         )
 
     update_config(cfg, args)
-    cfg.RANK = args.rank
 
     # setup logger
     logger, _ = setup_logger(final_output_dir, args.rank, 'train')

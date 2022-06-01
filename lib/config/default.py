@@ -143,6 +143,7 @@ def update_config(cfg, args):
     cfg.defrost()
     cfg.merge_from_file(args.cfg)
     cfg.merge_from_list(args.opts)
+    cfg.RANK = args.rank
 
     if not os.path.exists(cfg.DATASET.ROOT):
         cfg.DATASET.ROOT = os.path.join(
