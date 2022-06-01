@@ -169,7 +169,6 @@ def main():
     model.eval()
 
     _, test_dataset = make_test_dataloader(cfg)
-    test_dataset = test_dataset[:500]
     model.share_memory()
     torch.multiprocessing.set_start_method('spawn')
     pool = torch.multiprocessing.Pool(8)
