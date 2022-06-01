@@ -85,7 +85,10 @@ def _print_name_value(logger, name_value, full_arch_name):
 
 
 def valid_per_image(image):
-    global model, transforms
+    global model, transforms, pbar
+
+    if cfg.TEST.LOG_PROGRESS:
+        pbar.update()
 
     # size at scale 1.0
     base_size, center, scale = get_multi_scale_size(
@@ -127,7 +130,7 @@ def valid_per_image(image):
             return final_poses, scores
 
 def main():
-    global model, transforms
+    global model, transforms, pbar
     args = parse_args()
     update_config(cfg, args)
 
@@ -172,6 +175,7 @@ def main():
 
     model.share_memory()
     pool = torch.multiprocessing.Pool(8)
+    pbar = tqdm(total=len(test_dataset)) if cfg.TEST.LOG_PROGRESS else None
     all_reg_preds, all_reg_scores = pool.map(valid_per_image, test_dataset)
     # all_reg_preds, all_reg_scores = process_map(valid_per_image, test_dataset, max_workers=8, chunksize=2)
 
@@ -231,8 +235,8 @@ def main():
     sv_all_scores = [all_reg_scores]
     sv_all_name = [cfg.NAME]
 
-    # if cfg.TEST.LOG_PROGRESS:
-    #     pbar.close()
+    if cfg.TEST.LOG_PROGRESS:
+        pbar.close()
 
     for i in range(len(sv_all_preds)):
         print('Testing '+sv_all_name[i])
