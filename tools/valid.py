@@ -85,11 +85,9 @@ def _print_name_value(logger, name_value, full_arch_name):
     )
 
 
-def valid_per_image(images):
+def valid_per_image(image):
     global model, transforms
-    image = images[0]
-    print(images.shape, image.shape)
-    
+
     # size at scale 1.0
     base_size, center, scale = get_multi_scale_size(
         image, cfg.DATASET.INPUT_SIZE, 1.0, 1.0
