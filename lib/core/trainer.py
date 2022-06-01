@@ -78,7 +78,7 @@ def do_train(cfg, model, data_loader, loss_factory, optimizer, epoch,
                       heatmaps_loss=_get_loss_info(
                           heatmap_loss_meter, 'heatmaps'),
                       offset_loss=_get_loss_info(offset_loss_meter, 'offset'),
-                      oks_loss=_get_loss_info(oks_loss_meter, 'oks_loss')
+                      oks_loss=_get_loss_info(oks_loss_meter, 'oks_loss', keep_digit=True)
                   )
             logger.info(msg)
 
@@ -105,10 +105,15 @@ def do_train(cfg, model, data_loader, loss_factory, optimizer, epoch,
                        'train_oks_loss': oks_loss_meter.val})
 
 
-def _get_loss_info(meter, loss_name):
+def _get_loss_info(meter, loss_name, keep_digit=False):
     msg = ''
-    msg += '{name}: {meter.val:.3e} ({meter.avg:.3e})\t'.format(
-        name=loss_name, meter=meter
-    )
+    if keep_digit:
+        msg += '{name}: {meter.val:.3f} ({meter.avg:.3f})\t'.format(
+            name=loss_name, meter=meter
+        )
+    else:
+        msg += '{name}: {meter.val:.3e} ({meter.avg:.3e})\t'.format(
+            name=loss_name, meter=meter
+        )
 
     return msg
