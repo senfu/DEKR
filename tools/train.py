@@ -132,8 +132,6 @@ def main_worker(
     torch.backends.cudnn.enabled = cfg.CUDNN.ENABLED
 
     args.gpu = gpu
-    cfg.RANK = args.rank
-
     if args.gpu is not None:
         print("Use GPU: {} for training".format(args.gpu))
 
@@ -154,6 +152,7 @@ def main_worker(
         )
 
     update_config(cfg, args)
+    cfg.RANK = args.rank
 
     # setup logger
     logger, _ = setup_logger(final_output_dir, args.rank, 'train')
