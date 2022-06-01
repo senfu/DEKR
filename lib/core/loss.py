@@ -48,6 +48,17 @@ class OffsetsLoss(nn.Module):
         loss = loss.sum() / num_pos
         return loss
 
+class OKSLoss(nn.Module):
+    def __init__(self):
+        super().__init__()
+    
+    def forward(self, pred, gt, weights):
+        assert pred.size() == gt.size()
+        num_pos = max(torch.nonzero(weights < 0).size()[0], 1)
+        loss = ((pred - gt)**2) * weights
+        loss = torch.exp(loss.sum(1))
+        loss = loss.sum() / num_pos / (pred.shape[1] // 2)
+        return loss
 
 class MultiLossFactory(nn.Module):
     def __init__(self, cfg):
@@ -61,8 +72,11 @@ class MultiLossFactory(nn.Module):
 
         self.offset_loss = OffsetsLoss() if cfg.LOSS.WITH_OFFSETS_LOSS else None
         self.offset_loss_factor = cfg.LOSS.OFFSETS_LOSS_FACTOR
+        
+        self.oks_loss = OKSLoss() if cfg.LOSS.WITH_OKS_LOSS else None
+        self.oks_loss_factor = cfg.LOSS.OKS_LOSS_FACTOR
 
-    def forward(self, output, poffset, heatmap, mask, offset, offset_w):
+    def forward(self, output, poffset, heatmap, mask, offset, offset_w, oks_loss_w):
         if self.heatmap_loss:
             heatmap_loss = self.heatmap_loss(output, heatmap, mask)
             heatmap_loss = heatmap_loss * self.heatmap_loss_factor
@@ -74,5 +88,11 @@ class MultiLossFactory(nn.Module):
             offset_loss = offset_loss * self.offset_loss_factor
         else:
             offset_loss = None
+        
+        if self.oks_loss:
+            oks_loss = self.oks_loss(poffset, offset, oks_loss_w)
+            oks_loss = oks_loss * self.oks_loss_factor
+        else:
+            oks_loss = None
 
-        return heatmap_loss, offset_loss
+        return heatmap_loss, offset_loss, oks_loss

@@ -26,22 +26,25 @@ def do_train(cfg, model, data_loader, loss_factory, optimizer, epoch,
 
     heatmap_loss_meter = AverageMeter()
     offset_loss_meter = AverageMeter()
+    oks_loss_meter = AverageMeter()
 
     model.train()
 
     end = time.time()
-    for i, (image, heatmap, mask, offset, offset_w) in enumerate(data_loader):
+    for i, (image, heatmap, mask, offset, offset_w, oks_loss_w) in enumerate(data_loader):
         data_time.update(time.time() - end)
 
+        image = image.cuda(non_blocking=True)
         pheatmap, poffset = model(image)
 
         heatmap = heatmap.cuda(non_blocking=True)
         mask = mask.cuda(non_blocking=True)
         offset = offset.cuda(non_blocking=True)
         offset_w = offset_w.cuda(non_blocking=True)
+        oks_loss_w = oks_loss_w.cuda(non_blocking=True)
 
-        heatmap_loss, offset_loss = \
-            loss_factory(pheatmap, poffset, heatmap, mask, offset, offset_w)
+        heatmap_loss, offset_loss, oks_loss = \
+            loss_factory(pheatmap, poffset, heatmap, mask, offset, offset_w, oks_loss_w)
 
         loss = 0
         if heatmap_loss is not None:
@@ -50,6 +53,10 @@ def do_train(cfg, model, data_loader, loss_factory, optimizer, epoch,
         if offset_loss is not None:
             offset_loss_meter.update(offset_loss.item(), image.size(0))
             loss = loss + offset_loss
+        if oks_loss is not None:
+            oks_loss_meter.update(oks_loss.item(), image.size(0))
+            loss = loss + oks_loss
+            
 
         optimizer.zero_grad()
         loss.backward()
@@ -63,14 +70,15 @@ def do_train(cfg, model, data_loader, loss_factory, optimizer, epoch,
                   'Time: {batch_time.val:.3f}s ({batch_time.avg:.3f}s)\t' \
                   'Speed: {speed:.1f} samples/s\t' \
                   'Data: {data_time.val:.3f}s ({data_time.avg:.3f}s)\t' \
-                  '{heatmaps_loss}{offset_loss}'.format(
+                  '{heatmaps_loss}{offset_loss}{oks_loss}'.format(
                       epoch, i, len(data_loader),
                       batch_time=batch_time,
                       speed=image.size(0)/batch_time.val,
                       data_time=data_time,
                       heatmaps_loss=_get_loss_info(
                           heatmap_loss_meter, 'heatmaps'),
-                      offset_loss=_get_loss_info(offset_loss_meter, 'offset')
+                      offset_loss=_get_loss_info(offset_loss_meter, 'offset'),
+                      oks_loss=_get_loss_info(oks_loss_meter, 'oks_loss')
                   )
             logger.info(msg)
 
@@ -86,8 +94,15 @@ def do_train(cfg, model, data_loader, loss_factory, optimizer, epoch,
                 offset_loss_meter.val,
                 global_steps
             )
+            writer.add_scalar(
+                'train_oks_loss',
+                oks_loss_meter.val,
+                global_steps
+            )
             writer_dict['train_global_steps'] = global_steps + 1
-            wandb.log({'train_heatmap_loss': heatmap_loss_meter.val, 'train_offset_loss': offset_loss_meter.val})
+            wandb.log({'train_heatmap_loss': heatmap_loss_meter.val, 
+                       'train_offset_loss': offset_loss_meter.val,
+                       'train_oks_loss': oks_loss_meter.val})
 
 
 def _get_loss_info(meter, loss_name):

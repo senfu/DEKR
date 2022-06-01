@@ -75,6 +75,10 @@ class OffsetGenerator():
         self.output_w = output_w
         self.output_h = output_h
         self.radius = radius
+        if num_joints == 17:
+            self.kpt_oks_sigmas = np.array([.26, .25, .25, .35, .35, .79, .79, .72, .72, .62,.62, 1.07, 1.07, .87, .87, .89, .89])/10.0
+        else:
+            raise NotImplementedError
 
     def __call__(self, joints, area):
         assert joints.shape[1] == self.num_joints_with_center, \
@@ -86,6 +90,8 @@ class OffsetGenerator():
                               dtype=np.float32)
         area_map = np.zeros((self.output_h, self.output_w),
                             dtype=np.float32)
+        oks_loss_weight_map = np.zeros((self.num_joints_without_center*2, self.output_h, self.output_w), 
+                                       dtype=np.float32)
 
         for person_id, p in enumerate(joints):
             ct_x = int(p[-1, 0])
@@ -120,5 +126,7 @@ class OffsetGenerator():
                             weight_map[idx*2, pos_y, pos_x] = 1. / np.sqrt(area[person_id])
                             weight_map[idx*2+1, pos_y, pos_x] = 1. / np.sqrt(area[person_id])
                             area_map[pos_y, pos_x] = area[person_id]
+                            oks_loss_weight_map[idx*2, pos_y, pos_x] = -1. / (2*area[person_id]*(self.kpt_oks_sigmas[idx]**2))
+                            oks_loss_weight_map[idx*2+1, pos_y, pos_x] = -1. / (2*area[person_id]*(self.kpt_oks_sigmas[idx]**2))
 
-        return offset_map, weight_map
+        return offset_map, weight_map, oks_loss_weight_map

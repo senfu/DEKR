@@ -61,10 +61,10 @@ class CocoKeypoints(CocoDataset):
             joints_list[0], self.sigma, self.center_sigma, self.bg_weight)
         mask = mask_list[0]*ignored
 
-        offset, offset_weight = self.offset_generator(
+        offset, offset_weight, oks_loss_weight_map = self.offset_generator(
             joints_list[0], area)
 
-        return img, heatmap, mask, offset, offset_weight
+        return img, heatmap, mask, offset, offset_weight, oks_loss_weight_map
 
     def cal_area_2_torch(self, v):
         w = torch.max(v[:, :, 0], -1)[0] - torch.min(v[:, :, 0], -1)[0]
