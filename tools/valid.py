@@ -87,7 +87,7 @@ def _print_name_value(logger, name_value, full_arch_name):
 
 def valid_per_image(images):
     global model, transforms
-    image = images[0].cpu().numpy()
+    image = images[0]
     
     # size at scale 1.0
     base_size, center, scale = get_multi_scale_size(
