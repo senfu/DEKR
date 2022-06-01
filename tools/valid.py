@@ -85,7 +85,8 @@ def _print_name_value(logger, name_value, full_arch_name):
 
 
 def valid_per_image(args):
-    image, model = args
+    image, model, gpu_id = args
+    model = model.to(torch.device(f'cuda:{gpu_id}'))
     transforms = torchvision.transforms.Compose([
             torchvision.transforms.ToTensor(),
             torchvision.transforms.Normalize(
@@ -109,7 +110,7 @@ def valid_per_image(args):
             )
 
             image_resized = transforms(image_resized)
-            image_resized = image_resized.unsqueeze(0).cuda()
+            image_resized = image_resized.unsqueeze(0).to(torch.device(f'cuda:{gpu_id}'))
 
             heatmap, posemap = get_multi_stage_outputs(
                 cfg, model, image_resized, cfg.TEST.FLIP_TEST
@@ -166,7 +167,7 @@ def main():
         model.load_state_dict(torch.load(model_state_file))
 
     # model = torch.nn.DataParallel(model, device_ids=cfg.GPUS).cuda()
-    model.cuda()
+    # model.cuda()
     model.eval()
 
     data_loader, test_dataset = make_test_dataloader(cfg)
@@ -180,8 +181,8 @@ def main():
 
     model.share_memory()
     torch.multiprocessing.set_start_method('spawn')
-    pool = torch.multiprocessing.Pool(8)
-    pbar = tqdm(pool.imap(valid_per_image, zip(test_dataset, [model]*len(test_dataset)), chunksize=8), total=len(test_dataset))
+    pool = torch.multiprocessing.Pool(16)
+    pbar = tqdm(pool.imap(valid_per_image, zip(test_dataset, [model]*len(test_dataset), [x%2 for x in range(len(test_dataset))]), chunksize=8), total=len(test_dataset))
     all_reg_preds, all_reg_scores = tuple(pbar)
     pbar.close()
     # all_reg_preds, all_reg_scores = process_map(valid_per_image, test_dataset, max_workers=8, chunksize=2)
