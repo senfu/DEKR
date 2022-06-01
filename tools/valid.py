@@ -105,7 +105,7 @@ def valid_per_image(image):
             )
 
             image_resized = transforms(image_resized)
-            image_resized = image_resized.unsqueeze(0).cpu()
+            image_resized = image_resized.unsqueeze(0).cuda()
 
             heatmap, posemap = get_multi_stage_outputs(
                 cfg, model, image_resized, cfg.TEST.FLIP_TEST
