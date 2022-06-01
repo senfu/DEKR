@@ -174,7 +174,8 @@ def main():
     pool = torch.multiprocessing.Pool(8)
     pbar = tqdm(pool.imap(valid_per_image, zip(test_dataset, [model]*len(test_dataset)), chunksize=4), total=len(test_dataset))
     results = tuple(pbar)
-    import pdb;pdb.set_trace()
+    all_reg_preds = [r[0] for r in results]
+    all_reg_scores = [r[1] for r in results]
     pbar.close()
     # all_reg_preds, all_reg_scores = process_map(valid_per_image, test_dataset, max_workers=8, chunksize=2)
 
