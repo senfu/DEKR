@@ -24,6 +24,7 @@ import torch.optim
 import torch.utils.data
 import torch.utils.data.distributed
 from tensorboardX import SummaryWriter
+import wandb
 
 import _init_paths
 import models
@@ -131,6 +132,7 @@ def main_worker(
     torch.backends.cudnn.enabled = cfg.CUDNN.ENABLED
 
     args.gpu = gpu
+    cfg.RANK = args.rank
 
     if args.gpu is not None:
         print("Use GPU: {} for training".format(args.gpu))
@@ -155,6 +157,8 @@ def main_worker(
 
     # setup logger
     logger, _ = setup_logger(final_output_dir, args.rank, 'train')
+    if args.rank == 0:
+        wandb.init(project="DEKR")
 
     model = eval('models.'+cfg.MODEL.NAME+'.get_pose_net')(
         cfg, is_train=True
@@ -255,7 +259,7 @@ def main_worker(
 
         # train one epoch
         do_train(cfg, model, train_loader, loss_factory, optimizer, epoch,
-                 final_output_dir, tb_log_dir, writer_dict)
+                 final_output_dir, tb_log_dir, writer_dict, args.rank)
 
         lr_scheduler.step()
 

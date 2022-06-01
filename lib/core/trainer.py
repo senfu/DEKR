@@ -12,12 +12,13 @@ from __future__ import print_function
 import logging
 import os
 import time
+import wandb
 
 from utils.utils import AverageMeter
 
 
 def do_train(cfg, model, data_loader, loss_factory, optimizer, epoch,
-             output_dir, tb_log_dir, writer_dict):
+             output_dir, tb_log_dir, writer_dict, gpu_rank):
     logger = logging.getLogger("Training")
 
     batch_time = AverageMeter()
@@ -86,6 +87,7 @@ def do_train(cfg, model, data_loader, loss_factory, optimizer, epoch,
                 global_steps
             )
             writer_dict['train_global_steps'] = global_steps + 1
+            wandb.log({'train_heatmap_loss': heatmap_loss_meter.val, 'train_offset_loss': offset_loss_meter.val})
 
 
 def _get_loss_info(meter, loss_name):
