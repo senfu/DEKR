@@ -23,24 +23,7 @@ _xml_zfile = []
 
 
 def imread(filename, flags=cv2.IMREAD_COLOR):
-    global _im_zfile
-    path = filename
-    pos_at = path.index('@')
-    if pos_at == -1:
-        print("character '@' is not found from the given path '%s'"%(path))
-        assert 0
-    path_zip = path[0: pos_at]
-    if 'train2017' in path_zip:
-        path_img = 'train2017/' + path[pos_at + 1:]
-    elif 'val2017' in path_zip:
-        path_img = 'val2017/' + path[pos_at + 1:]
-    elif 'test2017' in path_zip:
-        path_img = 'test2017/' + path[pos_at + 1:]
-    else:
-        path_img = 'images/' + path[pos_at + 1:]
-    
-    print(path_img)
-    print(filename)
+    return cv2.imread(filename.replace(".zip@", ""), flags)
 
 
 def xmlread(filename):
