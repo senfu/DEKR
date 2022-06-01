@@ -109,7 +109,7 @@ def valid_per_image(args):
             )
 
             image_resized = transforms(image_resized)
-            image_resized = image_resized.unsqueeze(0).to(torch.device(f'cuda:{gpu_id}'))
+            image_resized = image_resized.unsqueeze(0).cuda()
 
             heatmap, posemap = get_multi_stage_outputs(
                 cfg, model, image_resized, cfg.TEST.FLIP_TEST
@@ -169,6 +169,7 @@ def main():
     model.eval()
 
     _, test_dataset = make_test_dataloader(cfg)
+    test_dataset = test_dataset[:500]
     model.share_memory()
     torch.multiprocessing.set_start_method('spawn')
     pool = torch.multiprocessing.Pool(8)
