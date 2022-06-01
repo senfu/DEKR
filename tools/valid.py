@@ -86,7 +86,6 @@ def _print_name_value(logger, name_value, full_arch_name):
 
 def valid_per_image(args):
     image, model = args
-    print(1)
     transforms = torchvision.transforms.Compose([
             torchvision.transforms.ToTensor(),
             torchvision.transforms.Normalize(
@@ -182,7 +181,9 @@ def main():
     model.share_memory()
     torch.multiprocessing.set_start_method('spawn')
     pool = torch.multiprocessing.Pool(4)
-    all_reg_preds, all_reg_scores = pool.map(valid_per_image, zip(test_dataset, [model]*len(test_dataset)))
+    pbar = tqdm(pool.imap(valid_per_image, zip(test_dataset, [model]*len(test_dataset))), total=len(test_dataset))
+    all_reg_preds, all_reg_scores = tuple(pbar)
+    pbar.close()
     # all_reg_preds, all_reg_scores = process_map(valid_per_image, test_dataset, max_workers=8, chunksize=2)
 
     # all_reg_preds = []
