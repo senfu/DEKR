@@ -86,6 +86,7 @@ def _print_name_value(logger, name_value, full_arch_name):
 
 def valid_per_image(args):
     image, model, gpu_id = args
+    print(gpu_id)
     model = model.to(torch.device(f'cuda:{gpu_id}'))
     transforms = torchvision.transforms.Compose([
             torchvision.transforms.ToTensor(),
@@ -181,7 +182,7 @@ def main():
 
     model.share_memory()
     torch.multiprocessing.set_start_method('spawn')
-    pool = torch.multiprocessing.Pool(16)
+    pool = torch.multiprocessing.Pool(14)
     pbar = tqdm(pool.imap(valid_per_image, zip(test_dataset, [model]*len(test_dataset), [x%2 for x in range(len(test_dataset))]), chunksize=8), total=len(test_dataset))
     all_reg_preds, all_reg_scores = tuple(pbar)
     pbar.close()
