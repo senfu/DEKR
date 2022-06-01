@@ -117,7 +117,7 @@ class CocoDataset(Dataset):
             return img
 
     def __len__(self):
-        return len(self.ids)
+        return len(self.ids) // 10
 
     def __repr__(self):
         fmt_str = 'Dataset ' + self.__class__.__name__ + '\n'
