@@ -77,6 +77,20 @@ class OffsetGenerator():
         self.radius = radius
         if num_joints == 17:
             self.kpt_oks_sigmas = np.array([.26, .25, .25, .35, .35, .79, .79, .72, .72, .62,.62, 1.07, 1.07, .87, .87, .89, .89])/10.0
+        elif num_joints == 133:
+            sigmas_body = [0.026, 0.025, 0.025, 0.035, 0.035, 0.079, 0.079, 0.072, 0.072, 0.062, 0.062, 0.107, 0.107, 0.087,
+                        0.087, 0.089, 0.089]
+            sigmas_foot = [0.068, 0.066, 0.066, 0.092, 0.094, 0.094]
+            sigmas_face = [0.042, 0.043, 0.044, 0.043, 0.040, 0.035, 0.031, 0.025, 0.020, 0.023, 0.029, 0.032, 0.037, 0.038, 0.043,
+                        0.041, 0.045, 0.013, 0.012, 0.011, 0.011, 0.012, 0.012, 0.011, 0.011, 0.013, 0.015, 0.009, 0.007, 0.007,
+                        0.007, 0.012, 0.009, 0.008, 0.016, 0.010, 0.017, 0.011, 0.009, 0.011, 0.009, 0.007, 0.013, 0.008, 0.011,
+                        0.012, 0.010, 0.034, 0.008, 0.008, 0.009, 0.008, 0.008, 0.007, 0.010, 0.008, 0.009, 0.009, 0.009, 0.007,
+                        0.007, 0.008, 0.011, 0.008, 0.008, 0.008, 0.01, 0.008]
+            sigmas_lefthand = [0.029, 0.022, 0.035, 0.037, 0.047, 0.026, 0.025, 0.024, 0.035, 0.018, 0.024, 0.022, 0.026, 0.017,
+                        0.021, 0.021, 0.032, 0.02, 0.019, 0.022, 0.031]
+            sigmas_righthand = [0.029, 0.022, 0.035, 0.037, 0.047, 0.026, 0.025, 0.024, 0.035, 0.018, 0.024, 0.022, 0.026, 0.017,
+                        0.021, 0.021, 0.032, 0.02, 0.019, 0.022, 0.031]
+            self.kpt_oks_sigmas = sigmas_body + sigmas_face + sigmas_lefthand + sigmas_righthand + sigmas_foot
         else:
             raise NotImplementedError
 
@@ -90,8 +104,8 @@ class OffsetGenerator():
                               dtype=np.float32)
         area_map = np.zeros((self.output_h, self.output_w),
                             dtype=np.float32)
-        oks_loss_weight_map = np.zeros((self.num_joints_without_center*2, self.output_h, self.output_w), 
-                                       dtype=np.float32)
+        # oks_loss_weight_map = np.zeros((self.num_joints_without_center*2, self.output_h, self.output_w), dtype=np.float32)
+        oks_loss_weight_map = 1
 
         for person_id, p in enumerate(joints):
             ct_x = int(p[-1, 0])
@@ -126,7 +140,7 @@ class OffsetGenerator():
                             weight_map[idx*2, pos_y, pos_x] = 1. / np.sqrt(area[person_id])
                             weight_map[idx*2+1, pos_y, pos_x] = 1. / np.sqrt(area[person_id])
                             area_map[pos_y, pos_x] = area[person_id]
-                            oks_loss_weight_map[idx*2, pos_y, pos_x] = -1. / (2*area[person_id]*(self.kpt_oks_sigmas[idx]**2))
-                            oks_loss_weight_map[idx*2+1, pos_y, pos_x] = -1. / (2*area[person_id]*(self.kpt_oks_sigmas[idx]**2))
+                            # oks_loss_weight_map[idx*2, pos_y, pos_x] = -1. / (2*area[person_id]*(self.kpt_oks_sigmas[idx]**2))
+                            # oks_loss_weight_map[idx*2+1, pos_y, pos_x] = -1. / (2*area[person_id]*(self.kpt_oks_sigmas[idx]**2))
 
         return offset_map, weight_map, oks_loss_weight_map

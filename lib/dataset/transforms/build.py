@@ -52,8 +52,8 @@ def build_transforms(cfg, is_train=True):
                 cfg.DATASET.SCALE_TYPE,
                 cfg.DATASET.MAX_TRANSLATE
             ),
-            T.RandomHorizontalFlip(
-                coco_flip_index, cfg.DATASET.OUTPUT_SIZE, cfg.DATASET.FLIP),
+            # T.RandomHorizontalFlip(
+            #     coco_flip_index, cfg.DATASET.OUTPUT_SIZE, cfg.DATASET.FLIP),
             T.ToTensor(),
             T.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
         ]

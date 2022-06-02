@@ -29,7 +29,7 @@ _C.PIN_MEMORY = True
 _C.RANK = 0
 _C.VERBOSE = True
 _C.DIST_BACKEND = 'nccl'
-_C.MULTIPROCESSING_DISTRIBUTED = True
+_C.MULTIPROCESSING_DISTRIBUTED = False
 
 # Cudnn related params
 _C.CUDNN = CN()
@@ -52,7 +52,7 @@ _C.LOSS.HEATMAPS_LOSS_FACTOR = 1.0
 _C.LOSS.WITH_OFFSETS_LOSS = True
 _C.LOSS.OFFSETS_LOSS_FACTOR = 1.0
 
-_C.LOSS.WITH_OKS_LOSS = True
+_C.LOSS.WITH_OKS_LOSS = False
 _C.LOSS.OKS_LOSS_FACTOR = 1e-3
 
 # DATASET related params
@@ -146,7 +146,8 @@ def update_config(cfg, args):
     cfg.defrost()
     cfg.merge_from_file(args.cfg)
     cfg.merge_from_list(args.opts)
-    cfg.RANK = args.rank
+    if "rank" in args:
+        cfg.RANK = args.rank
 
     if not os.path.exists(cfg.DATASET.ROOT):
         cfg.DATASET.ROOT = os.path.join(
